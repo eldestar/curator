@@ -1,0 +1,2 @@
+* text=auto
+hooks/*.sh text eol=lf
