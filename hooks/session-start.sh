@@ -15,9 +15,9 @@ MODE="${MODE:-auto}"
 SESSION_LOG=$(grep -m1 '^session_log:' .protocol.md 2>/dev/null | sed 's/^session_log:[[:space:]]*//' | tr -d '[:space:]' || true)
 SESSION_LOG="${SESSION_LOG:-DESIGN.md}"
 
-# Sanitize session_log — must be a plain relative path within the repo.
-# Rejects: Unix/Windows absolute paths, traversal segments (/../), symlinks.
-# ponytail: string filter; realpath containment would be stronger but adds a subprocess
+# Sanitize session_log — must resolve to a path inside the repo root.
+# Stage 1: cheap string pre-checks (absolute paths, traversal segments, drive letters).
+# Stage 2: realpath-equivalent containment via cd+pwd -P — catches symlinked parent dirs.
 # Note: [[ =~ [/\\] ]] misses C:\path because bash consumes the backslash before
 # the regex engine sees it — use substring indexing for the Windows drive-letter check.
 _BS=$'\\'
@@ -29,7 +29,19 @@ elif [[ "${SESSION_LOG:1:1}" == ":" && ( "${SESSION_LOG:2:1}" == "/" || "${SESSI
 elif [[ "$SESSION_LOG" =~ (^|/)\.\.(/|$) ]]; then
   _reject=true  # traversal segment (../ or /..)
 elif [[ -e "$SESSION_LOG" && -L "$SESSION_LOG" ]]; then
-  _reject=true  # symlink (intra-repo escape vector)
+  _reject=true  # direct final-component symlink
+else
+  # Containment check: resolve the directory component and verify it stays under
+  # the repo root. This catches linked-dir/secret.md where linked-dir is the symlink.
+  _repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)
+  _log_dir=$(dirname "$SESSION_LOG")
+  _resolved_dir=$(cd "$_log_dir" 2>/dev/null && pwd -P) || true
+  if [[ -n "$_resolved_dir" ]]; then
+    case "${_resolved_dir}/" in
+      "${_repo_root}/"*) : ;;  # inside repo root — ok
+      *) _reject=true ;;        # directory resolved outside repo (symlinked parent)
+    esac
+  fi
 fi
 if [[ "$_reject" == true ]]; then
   printf 'curator: WARN: session_log "%s" rejected (unsafe path) — using DESIGN.md\n' "$SESSION_LOG" >&2

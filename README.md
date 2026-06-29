@@ -16,7 +16,7 @@ skills/
   open.md            /open  — session orientation
   setup.md           /setup — new project scaffold + doc registration
 hooks/
-  session-start.sh   SessionStart hook (outputs additionalContext JSON)
+  session-start.sh   SessionStart hook (injects context via plain stdout)
 template/
   CLAUDE.md          AI entry point template
   DESIGN.md          Session log template

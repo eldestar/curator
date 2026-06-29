@@ -63,6 +63,6 @@ Enables Claude Code remote access from your phone. Requires Claude Code ≥ v2.1
 Edit `.protocol.md` in your project:
 
 ```
-curator_mode: auto    ← AI checks doc state at session close
+curator_mode: auto    ← AI reminded at session start to check doc state before closing
 curator_mode: manual  ← explicit updates only, no prompting
 ```

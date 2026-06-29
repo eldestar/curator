@@ -20,7 +20,7 @@ description: Scaffold a new project with The Curator doc structure, or register 
 
 Ask the user:
 1. Project name?
-2. Curator mode: `auto` (AI checks doc state at session close) or `manual` (explicit only)?
+2. Curator mode: `auto` (AI reminded at session start to check doc state before closing) or `manual` (explicit only)?
 3. Enable remote control? (adds `remoteControlEnabled: true` to `~/.claude/settings.json`, requires Claude Code ≥ v2.1.51 + Claude Pro)
 
 ### Step 2 — Create `.protocol.md`
