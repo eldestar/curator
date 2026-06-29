@@ -18,10 +18,13 @@ SESSION_LOG="${SESSION_LOG:-DESIGN.md}"
 # Sanitize session_log — must be a plain relative path within the repo.
 # Rejects: Unix/Windows absolute paths, traversal segments (/../), symlinks.
 # ponytail: string filter; realpath containment would be stronger but adds a subprocess
+# Note: [[ =~ [/\\] ]] misses C:\path because bash consumes the backslash before
+# the regex engine sees it — use substring indexing for the Windows drive-letter check.
+_BS=$'\\'
 _reject=false
 if [[ "$SESSION_LOG" == /* || "$SESSION_LOG" == ~* ]]; then
   _reject=true  # Unix absolute
-elif [[ "$SESSION_LOG" =~ ^[A-Za-z]:[/\\] ]]; then
+elif [[ "${SESSION_LOG:1:1}" == ":" && ( "${SESSION_LOG:2:1}" == "/" || "${SESSION_LOG:2:1}" == "$_BS" ) ]]; then
   _reject=true  # Windows drive-letter absolute (C:/ or C:\)
 elif [[ "$SESSION_LOG" =~ (^|/)\.\.(/|$) ]]; then
   _reject=true  # traversal segment (../ or /..)
@@ -42,7 +45,7 @@ build_context() {
   if git rev-parse --is-inside-work-tree &>/dev/null 2>&1; then
     echo "## Git State"
     echo ""
-    git status --short 2>/dev/null | head -20 || true
+    git status --short 2>/dev/null | head -n 20 || true
     echo ""
     echo "Recent commits:"
     git log --oneline -5 2>/dev/null || true
@@ -52,7 +55,7 @@ build_context() {
   if [[ -f "$SESSION_LOG" ]]; then
     echo "## ${SESSION_LOG} (head)"
     echo ""
-    head -60 "$SESSION_LOG" 2>/dev/null || true
+    head -n 60 "$SESSION_LOG" 2>/dev/null || true
     echo ""
   fi
 

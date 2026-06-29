@@ -43,6 +43,11 @@ Add to `~/.claude/settings.json` under a `"hooks"` key:
 
 Replace `/path/to/curator` with the absolute path to this repo. The hook exits silently in any project that doesn't have a `.protocol.md` — safe to install globally.
 
+**Platform notes:**
+- **macOS / Linux** — bash is available by default. Works as-is.
+- **Windows** — the hook command above requires `bash` in your PATH. [Git for Windows](https://git-scm.com/download/win) (Git Bash) provides this. WSL also works. If you use WSL, use a Linux-style path to the script.
+- The hook has no Node.js dependency and uses only POSIX utilities (`grep`, `sed`, `tr`, `head`, `git`).
+
 ## Remote control (optional)
 
 Add to `~/.claude/settings.json`:
