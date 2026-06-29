@@ -14,7 +14,7 @@ description: Scaffold a new project with The Curator doc structure, or register 
 
 ## New Project flow
 
-**Pre-check:** if `CLAUDE.md`, `DESIGN.md`, and `.protocol.md` all already exist, ask before proceeding — offer to re-scaffold or abort.
+**Pre-check:** if ANY of `CLAUDE.md`, `DESIGN.md`, or `.protocol.md` already exist, list which files were found and ask before overwriting any of them — offer to re-scaffold or abort.
 
 ### Step 1 — Ask (one message, not three)
 
