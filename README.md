@@ -6,7 +6,7 @@ A portable session-protocol skill for Claude Code. Keeps projects from developin
 
 - **Auto-orient** — a SessionStart hook reads `.protocol.md`, git state, and the session log and injects them as context. No more starting cold or manually running `/open`.
 - **Single entry point** — `CLAUDE.md` is a live index of every project doc. The AI reads it first, knows what exists and why, and loads only what the current task needs.
-- **Anti-sprawl** — in `auto` mode, the AI is reminded at session close to extend existing docs rather than create new ones, and to update the index when things change.
+- **Anti-sprawl** — in `auto` mode, the AI is reminded at session start to extend existing docs rather than create new ones before closing, and to update the index when things change. No Stop hook is wired by default.
 - **Adaptive manifest** — `.protocol.md` tracks current focus, key commands, and session notes. It grows with the project and rides with the repo.
 
 ## Structure
@@ -28,8 +28,8 @@ INSTALL.md
 
 ```sh
 # 1. Copy skills into your project
-mkdir -p .claude/skills
-cp /path/to/curator/skills/* .claude/skills/
+mkdir -p .claude/commands
+cp /path/to/curator/skills/* .claude/commands/
 
 # 2. Wire the hook in ~/.claude/settings.json (see INSTALL.md)
 
@@ -41,7 +41,7 @@ cp /path/to/curator/skills/* .claude/skills/
 
 | Mode | Behavior |
 |------|----------|
-| `auto` | AI checks doc state at session close; prompts to update CLAUDE.md when needed |
+| `auto` | AI is reminded at session start to check doc state before closing; no enforcement hook (add a `Stop` hook for hard enforcement) |
 | `manual` | Explicit `/setup register` only; no prompting |
 
 Toggle in `.protocol.md`: `curator_mode: auto` or `curator_mode: manual`.
@@ -49,5 +49,5 @@ Toggle in `.protocol.md`: `curator_mode: auto` or `curator_mode: manual`.
 ## Compatibility
 
 - **IJFW-aware** — defers to `ijfw_memory_prelude` when present; fully functional without it.
-- **No hard dependencies** — bash + node (already present in any Claude Code environment).
-- **Portable** — drop into any project. The SessionStart hook exits silently when `.protocol.md` is absent, so it's safe to install globally in `~/.claude/settings.json`.
+- **No hard dependencies** — bash only (POSIX, no node).
+- **Portable** — drop into any project. The SessionStart hook exits silently when `.protocol.md` is absent, so it's safe to install globally in `~/.claude/settings.json`. See [SECURITY.md](SECURITY.md) for trust boundary details.

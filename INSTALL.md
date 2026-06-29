@@ -2,10 +2,10 @@
 
 ## Into a new project
 
-1. Copy the skills into your project's `.claude/skills/` folder:
+1. Copy the skills into your project's `.claude/commands/` folder:
    ```sh
-   mkdir -p .claude/skills
-   cp /path/to/curator/skills/* .claude/skills/
+   mkdir -p .claude/commands
+   cp /path/to/curator/skills/* .claude/commands/
    ```
 
 2. Run `/setup` in a Claude Code session. It creates `CLAUDE.md`, `DESIGN.md`, and `.protocol.md` and asks about mode and remote control.

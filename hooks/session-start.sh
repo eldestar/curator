@@ -1,19 +1,37 @@
 #!/usr/bin/env bash
 # The Curator — SessionStart hook
-# Injects project state as additionalContext when .protocol.md is present.
+# Injects project state as context when .protocol.md is present.
 # Silent exit in projects that don't use The Curator.
 
 set -euo pipefail
 
 [[ -f ".protocol.md" ]] || exit 0
 
-# Read mode (default: auto)
-MODE=$(grep -m1 '^curator_mode:' .protocol.md 2>/dev/null | sed 's/^curator_mode:[[:space:]]*//' | tr -d '[:space:]')
+# Read mode (default: auto) — || true prevents set -e from killing on missing key
+MODE=$(grep -m1 '^curator_mode:' .protocol.md 2>/dev/null | sed 's/^curator_mode:[[:space:]]*//' | tr -d '[:space:]' || true)
 MODE="${MODE:-auto}"
 
 # Read session log filename (default: DESIGN.md)
-SESSION_LOG=$(grep -m1 '^session_log:' .protocol.md 2>/dev/null | sed 's/^session_log:[[:space:]]*//' | tr -d '[:space:]')
+SESSION_LOG=$(grep -m1 '^session_log:' .protocol.md 2>/dev/null | sed 's/^session_log:[[:space:]]*//' | tr -d '[:space:]' || true)
 SESSION_LOG="${SESSION_LOG:-DESIGN.md}"
+
+# Sanitize session_log — must be a plain relative path within the repo.
+# Rejects: Unix/Windows absolute paths, traversal segments (/../), symlinks.
+# ponytail: string filter; realpath containment would be stronger but adds a subprocess
+_reject=false
+if [[ "$SESSION_LOG" == /* || "$SESSION_LOG" == ~* ]]; then
+  _reject=true  # Unix absolute
+elif [[ "$SESSION_LOG" =~ ^[A-Za-z]:[/\\] ]]; then
+  _reject=true  # Windows drive-letter absolute (C:/ or C:\)
+elif [[ "$SESSION_LOG" =~ (^|/)\.\.(/|$) ]]; then
+  _reject=true  # traversal segment (../ or /..)
+elif [[ -e "$SESSION_LOG" && -L "$SESSION_LOG" ]]; then
+  _reject=true  # symlink (intra-repo escape vector)
+fi
+if [[ "$_reject" == true ]]; then
+  printf 'curator: WARN: session_log "%s" rejected (unsafe path) — using DESIGN.md\n' "$SESSION_LOG" >&2
+  SESSION_LOG="DESIGN.md"
+fi
 
 build_context() {
   echo "## .protocol.md"
@@ -49,14 +67,7 @@ build_context() {
   fi
 }
 
-CONTEXT=$(build_context)
-
-# JSON-encode via node (always available in Claude Code environments)
-CONTEXT_JSON=$(node -e "
-process.stdin.resume();
-let data = '';
-process.stdin.on('data', function(chunk) { data += chunk; });
-process.stdin.on('end', function() { process.stdout.write(JSON.stringify(data)); });
-" <<< "$CONTEXT")
-
-printf '{"additionalContext": %s}\n' "$CONTEXT_JSON"
+# Plain stdout is a valid SessionStart context channel (no JSON wrapper needed).
+# Note: the previous {"additionalContext":...} top-level JSON was silently ignored
+# by Claude Code — the hook was injecting nothing. Plain stdout actually works.
+build_context
