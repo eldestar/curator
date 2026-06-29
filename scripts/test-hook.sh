@@ -125,11 +125,11 @@ if [[ "$_SYMLINKS_OK" == true ]]; then
 
   # Symlinked parent directory
   D=$(new_dir "parent-symlink")
-  OUTSIDE=$(new_dir "outside-parent"); echo "secret" > "$OUTSIDE/secret.md"
+  OUTSIDE=$(new_dir "outside-parent"); echo "OUTSIDE_PARENT_LEAK_TOKEN" > "$OUTSIDE/secret.md"
   ln -s "$OUTSIDE" "$D/linked-dir"
   printf 'curator_mode: auto\nsession_log: linked-dir/secret.md\n' > "$D/.protocol.md"
   assert_contains "symlinked parent dir rejected" "$D" "WARN"
-  assert_not_contains "symlinked parent dir: outside file not read" "$D" "secret"
+  assert_not_contains "symlinked parent dir: outside file not read" "$D" "OUTSIDE_PARENT_LEAK_TOKEN"
 else
   printf 'SKIP  symlink tests (symlinks require elevated permissions on this system)\n'
 fi
