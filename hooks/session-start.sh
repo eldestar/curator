@@ -62,8 +62,8 @@ fi
 build_context() {
   echo "## .protocol.md"
   echo ""
-  # Cap at 100 lines to prevent large or hostile manifests from bloating context
-  head -n 100 .protocol.md
+  # Cap at 100 lines AND ~8KB to guard against long-line context bloat
+  head -n 100 .protocol.md | head -c 8192
   echo ""
 
   if git rev-parse --is-inside-work-tree &>/dev/null 2>&1; then
@@ -79,7 +79,7 @@ build_context() {
   if [[ -f "$SESSION_LOG" ]]; then
     echo "## ${SESSION_LOG} (head)"
     echo ""
-    head -n 60 "$SESSION_LOG" 2>/dev/null || true
+    head -n 60 "$SESSION_LOG" 2>/dev/null | head -c 6144 || true
     echo ""
   fi
 

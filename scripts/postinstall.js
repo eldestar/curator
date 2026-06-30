@@ -69,17 +69,24 @@ function wireHook() {
   }
 
   settings.hooks = settings.hooks || {}
-  settings.hooks.SessionStart = settings.hooks.SessionStart || []
+  // Guard against unexpected SessionStart shape
+  if (!Array.isArray(settings.hooks.SessionStart)) {
+    settings.hooks.SessionStart = []
+  }
 
-  // Remove any stale Curator hooks (old path from prior installs)
+  // Remove only exact Curator-owned hooks (matched by stable dest path, not substring)
+  // ponytail: exact match prevents deleting unrelated hooks that happen to contain "curator"
+  const curatorPaths = [
+    HOOK_DEST,
+    HOOK_DEST.replace(/\\/g, '/'),  // forward-slash variant on Windows
+  ]
   settings.hooks.SessionStart = settings.hooks.SessionStart.filter(entry => {
     const hooks = entry.hooks || []
     const isCurator = hooks.some(h =>
-      typeof h.command === 'string' && h.command.includes('curator')
+      typeof h.command === 'string' &&
+      curatorPaths.some(p => h.command.includes(p))
     )
-    if (isCurator) {
-      console.log(`  removed: stale curator hook entry`)
-    }
+    if (isCurator) console.log(`  removed: stale curator hook entry`)
     return !isCurator
   })
 

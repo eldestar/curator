@@ -95,6 +95,18 @@ for p in "C:/secret" "C:\\secret"; do
   assert_contains "Windows path rejected: $p" "$D" "WARN"
 done
 
+# UNC paths
+for p in "\\\\server\\share\\secret.md" "//server/share/secret.md"; do
+  D=$(new_dir "unc-$(echo "$p" | tr '/' '_' | tr '\\' '_' | tr ':' '_')")
+  printf 'session_log: %s\n' "$p" > "$D/.protocol.md"
+  assert_contains "UNC path rejected: $p" "$D" "WARN"
+done
+
+# Paths with internal spaces
+D=$(new_dir "space-in-path")
+printf 'session_log: my notes.md\n' > "$D/.protocol.md"
+assert_contains "space in session_log path rejected" "$D" "WARN"
+
 # Double-dot filename (false-positive guard)
 D=$(new_dir "double-dot-filename")
 minimal_protocol "$D"
