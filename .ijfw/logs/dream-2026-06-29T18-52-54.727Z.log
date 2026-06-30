@@ -1,0 +1,7 @@
+[2026-06-29T18:52:54.728Z] start: host=claude-code, reason=session_end, project=C:/Users/benji/Documents/Projects/curator
+[2026-06-29T18:52:54.736Z] journal: 1 entries across 1 sessions
+[2026-06-29T18:52:54.746Z] tier-promotion: db open skipped (Cannot find package 'better-sqlite3' imported from C:\Users\benji\.ijfw\mcp-server\src\memory\fts5.js)
+[2026-06-29T18:52:54.751Z] wiki-compile: db open skipped (Cannot find package 'better-sqlite3' imported from C:\Users\benji\.ijfw\mcp-server\src\memory\fts5.js)
+[2026-06-29T18:52:54.790Z] profile_derive: merged delta (style=0 feedback=0 inferences=7)
+[2026-06-29T18:52:54.795Z] mark-completed: ok
+[2026-06-29T18:52:54.799Z] end: completed=5 failed=0

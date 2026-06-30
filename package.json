@@ -1,8 +1,14 @@
 {
   "name": "@eldestar/curator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A portable session-protocol skill for Claude Code — instant orientation, no doc sprawl.",
-  "keywords": ["claude-code", "claude", "ai", "skill", "session"],
+  "keywords": [
+    "claude-code",
+    "claude",
+    "ai",
+    "skill",
+    "session"
+  ],
   "homepage": "https://github.com/eldestar/curator",
   "license": "MIT",
   "author": "eldestar",
@@ -10,10 +16,12 @@
     "skills/",
     "hooks/",
     "template/",
-    "scripts/postinstall.js"
+    "scripts/postinstall.js",
+    "scripts/test-hook.sh"
   ],
   "scripts": {
-    "postinstall": "node scripts/postinstall.js"
+    "postinstall": "node scripts/postinstall.js",
+    "test": "bash scripts/test-hook.sh"
   },
   "bin": {
     "curator": "scripts/postinstall.js"

@@ -103,13 +103,7 @@ _Register docs with: `/setup register <path> "<purpose>" <cap_lines> "<load-when
 
 ### Step 5 — Remote control (if requested)
 
-Tell the user: to enable remote control, add the following to `~/.claude/settings.json` manually in a text editor, then rerun `npx @eldestar/curator` to ensure the hook is still wired correctly:
-
-```json
-"remoteControlEnabled": true
-```
-
-Requires Claude Code ≥ v2.1.51 and Claude Pro. Do not edit `settings.json` programmatically from this skill.
+Read `~/.claude/settings.json`. Set `"remoteControlEnabled": true`. Write it back.
 
 ### Step 6 — IJFW (if present)
 

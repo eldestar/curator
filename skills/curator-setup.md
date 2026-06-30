@@ -1,13 +1,13 @@
 ---
-name: setup
-description: Scaffold a new project with The Curator doc structure, or register a doc in the CLAUDE.md index. Usage: /setup [register <path> "<purpose>" <cap_lines> "<load-when>"]
+name: curator-setup
+description: Scaffold a new project with The Curator doc structure, or register a doc in the CLAUDE.md index. Namespaced alias for /setup. Usage: /curator-setup [register <path> "<purpose>" <cap_lines> "<load-when>"]
 ---
 
-# /setup — Project Scaffold
+# /curator-setup — Project Scaffold
 
 ## Detect mode
 
-- If invoked as `/setup register ...` → run **Register** flow.
+- If invoked as `/curator-setup register ...` → run **Register** flow.
 - Otherwise → run **New Project** flow.
 
 ---
@@ -93,23 +93,24 @@ Read this file first. Load nothing else until you know what the task needs.
 | File | Purpose | Cap | Load when |
 |------|---------|-----|-----------|
 
-_Register docs with: `/setup register <path> "<purpose>" <cap_lines> "<load-when>"`_
+_Register docs with: `/curator-setup register <path> "<purpose>" <cap_lines> "<load-when>"`_
 
 ## Doc Discipline
 - Check this table before creating any file. Extend existing docs first.
 - `Load when` is the routing guide — load only what the current task needs.
-- If a doc exceeds its cap, flag it at the next `/open` for pruning.
+- If a doc exceeds its cap, flag it at the next `/curator-open` for pruning.
 ```
 
 ### Step 5 — Remote control (if requested)
 
-Tell the user: to enable remote control, add the following to `~/.claude/settings.json` manually in a text editor, then rerun `npx @eldestar/curator` to ensure the hook is still wired correctly:
+Tell the user: to enable remote control, rerun the installer with the flag set manually:
 
-```json
+```sh
+# Add to ~/.claude/settings.json:
 "remoteControlEnabled": true
 ```
 
-Requires Claude Code ≥ v2.1.51 and Claude Pro. Do not edit `settings.json` programmatically from this skill.
+Requires Claude Code ≥ v2.1.51 and Claude Pro. Do not edit `settings.json` directly — rerun `npx @eldestar/curator` after making the change, or edit the file carefully in a text editor.
 
 ### Step 6 — IJFW (if present)
 
@@ -117,7 +118,7 @@ If `ijfw_memory_prelude` is available, call `ijfw_memory_store` to register this
 
 ### Step 7 — Report
 
-List exactly what was created. State the mode. One next step: "Run `/open` to orient."
+List exactly what was created. State the mode. One next step: "Run `/curator-open` to orient."
 
 ---
 
@@ -125,9 +126,9 @@ List exactly what was created. State the mode. One next step: "Run `/open` to or
 
 Adds a doc to the `## Project Docs` table in `CLAUDE.md` without touching other files.
 
-**Usage:** `/setup register <path> "<purpose>" <cap_lines> "<load-when>"`
+**Usage:** `/curator-setup register <path> "<purpose>" <cap_lines> "<load-when>"`
 
-**Example:** `/setup register docs/ARCH.md "system design decisions" 200 "architecture questions"`
+**Example:** `/curator-setup register docs/ARCH.md "system design decisions" 200 "architecture questions"`
 
 ### Steps
 
@@ -143,4 +144,4 @@ Adds a doc to the `## Project Docs` table in `CLAUDE.md` without touching other 
 
 ## Doc Discipline (always active)
 
-When any doc reaches its cap, flag it at the next `/open` with: `"⚠ <file> is near/over its <cap>L cap — consider pruning."` Do not automatically split or delete content; surface it and let the user decide.
+When any doc reaches its cap, flag it at the next `/curator-open` with: `"⚠ <file> is near/over its <cap>L cap — consider pruning."` Do not automatically split or delete content; surface it and let the user decide.
