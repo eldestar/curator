@@ -27,15 +27,10 @@ INSTALL.md
 ## Quick start
 
 ```sh
-# 1. Copy skills into your project
-mkdir -p .claude/commands
-cp /path/to/curator/skills/* .claude/commands/
-
-# 2. Wire the hook in ~/.claude/settings.json (see INSTALL.md)
-
-# 3. Start a Claude Code session and run:
-/setup
+npx @eldestar/curator
 ```
+
+Then start a Claude Code session and run `/setup`.
 
 ## Modes
 

@@ -1,47 +1,29 @@
 # Installing The Curator
 
-## Into a new project
+## Install
 
-1. Copy the skills into your project's `.claude/commands/` folder:
-   ```sh
-   mkdir -p .claude/commands
-   cp /path/to/curator/skills/* .claude/commands/
-   ```
+```sh
+npx @eldestar/curator
+```
 
-2. Run `/setup` in a Claude Code session. It creates `CLAUDE.md`, `DESIGN.md`, and `.protocol.md` and asks about mode and remote control.
+This copies the `/open` and `/setup` skills to `~/.claude/commands/` and wires the SessionStart hook in `~/.claude/settings.json`. Safe to run again — it's idempotent.
 
-## Into an existing project
+## Scaffold a project
 
-Same as above. `/setup` detects existing files and asks before overwriting. After scaffolding, register your existing docs one by one:
+After installing, start a Claude Code session in your project and run:
+
+```
+/setup
+```
+
+`/setup` creates `CLAUDE.md`, `DESIGN.md`, and `.protocol.md` and asks about curator mode and remote control. It detects existing files and asks before overwriting.
+
+## Register existing docs
 
 ```
 /setup register docs/ARCH.md "system design decisions" 200 "architecture questions"
 /setup register docs/API.md "API reference" 300 "API or endpoint questions"
 ```
-
-## Wiring the SessionStart hook (personal, not published)
-
-This makes every new session auto-orient — the main reason to use The Curator.
-
-Add to `~/.claude/settings.json` under a `"hooks"` key:
-
-```json
-"hooks": {
-  "SessionStart": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "bash /path/to/curator/hooks/session-start.sh",
-          "timeout": 15
-        }
-      ]
-    }
-  ]
-}
-```
-
-Replace `/path/to/curator` with the absolute path to this repo. The hook exits silently in any project that doesn't have a `.protocol.md` — safe to install globally.
 
 **Platform notes:**
 - **macOS / Linux** — bash is available by default. Works as-is.
