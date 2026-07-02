@@ -33,9 +33,13 @@ git status --short
 git log --oneline -5
 ```
 
-## 5. IJFW (if present)
+## 4.5 Memory/doc adapters (Tier A, deeper read)
 
-If `ijfw_memory_prelude` is available, call it now to load project memory.
+Re-check the Tier-A adapters the SessionStart hook already surfaced (CLAUDE.md, AGENTS.md, Cline memory bank, Copilot instructions, Cursor rules). If the hook's injected context showed a section for one and the current task needs more than the head-only snippet already injected, read the full file now. Skip any adapter whose signal wasn't present in the injected hook context — don't re-probe from scratch.
+
+## 5. Tier-B adapters (MCP-based)
+
+For each Tier-B adapter listed in `.protocol.md`'s `memory:` field (v1: `ijfw`), invoke its MCP tool. If `ijfw_memory_prelude` is available, call it now to load project memory.
 
 ## 6. Report
 

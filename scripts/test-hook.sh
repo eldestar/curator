@@ -21,7 +21,7 @@ run() { (cd "$1" && bash "$HOOK" 2>&1) || true; }
 assert_contains() {
   local desc="$1" dir="$2" pattern="$3"
   local out; out=$(run "$dir")
-  if echo "$out" | grep -qF "$pattern"; then
+  if echo "$out" | grep -qF -- "$pattern"; then
     printf 'PASS  %s\n' "$desc"; ((PASS++)) || true
   else
     printf 'FAIL  %s\n      expected to contain: %s\n      got: %s\n' \
@@ -32,7 +32,7 @@ assert_contains() {
 assert_not_contains() {
   local desc="$1" dir="$2" pattern="$3"
   local out; out=$(run "$dir")
-  if ! echo "$out" | grep -qF "$pattern"; then
+  if ! echo "$out" | grep -qF -- "$pattern"; then
     printf 'PASS  %s\n' "$desc"; ((PASS++)) || true
   else
     printf 'FAIL  %s\n      expected NOT to contain: %s\n' "$desc" "$pattern"; ((FAIL++)) || true
@@ -158,6 +158,71 @@ assert_contains "DESIGN.md content visible" "$D" "All good."
 D=$(new_dir "missing-design")
 minimal_protocol "$D"
 assert_not_contains "missing DESIGN.md → no error, section skipped" "$D" "DESIGN.md (head)"
+
+echo ""
+echo "--- memory/doc adapters ---"
+
+# AGENTS.md present
+D=$(new_dir "adapter-agents-md")
+minimal_protocol "$D"
+printf '# AGENTS.md\n\nProject agent notes.\n' > "$D/AGENTS.md"
+assert_contains "AGENTS.md present → ## AGENTS.md section" "$D" "## AGENTS.md"
+
+# Cline memory bank: activeContext.md present → fires
+D=$(new_dir "adapter-cline-bank")
+minimal_protocol "$D"
+mkdir -p "$D/memory-bank"
+printf '# Active Context\n\nWorking on the adapter registry.\n' > "$D/memory-bank/activeContext.md"
+assert_contains "memory-bank/activeContext.md present → section shown" "$D" "### activeContext.md (head)"
+assert_contains "memory-bank/activeContext.md content visible" "$D" "Working on the adapter registry."
+
+# Cline memory bank: empty dir (no .md files) → does NOT fire
+D=$(new_dir "adapter-cline-bank-empty")
+minimal_protocol "$D"
+mkdir -p "$D/memory-bank"
+assert_not_contains "empty memory-bank/ (no .md) → NOT fired" "$D" "Cline Memory Bank"
+
+# Cursor .mdc rule with frontmatter → labelled fields shown, fence stripped
+D=$(new_dir "adapter-cursor")
+minimal_protocol "$D"
+mkdir -p "$D/.cursor/rules"
+cat > "$D/.cursor/rules/x.mdc" <<'EOF'
+---
+description: TypeScript style rules
+globs: **/*.ts
+alwaysApply: true
+---
+Use strict null checks.
+EOF
+assert_contains "cursor .mdc → description label shown" "$D" "description: TypeScript style rules"
+assert_contains "cursor .mdc → globs label shown" "$D" "globs: **/*.ts"
+assert_contains "cursor .mdc → alwaysApply label shown" "$D" "alwaysApply: true"
+assert_contains "cursor .mdc → body content shown" "$D" "Use strict null checks."
+assert_not_contains "cursor .mdc → frontmatter fence stripped" "$D" "---"
+
+# Dedup: default entry_point (CLAUDE.md) + CLAUDE.md present → claude-native
+# adapter is skipped (the entry-point role already covers CLAUDE.md; the
+# registry only adds value when entry_point points elsewhere/absent).
+D=$(new_dir "adapter-dedup-claude-native")
+minimal_protocol "$D"
+printf '# CLAUDE.md\n\nDedup check content.\n' > "$D/CLAUDE.md"
+assert_not_contains "claude-native dedup: no adapter section for default entry_point" "$D" "## CLAUDE.md (head)"
+assert_not_contains "claude-native dedup: CLAUDE.md body not injected via adapter" "$D" "Dedup check content."
+
+# memory: allowlist honored — agents-md only suppresses a present cursor rules dir
+D=$(new_dir "adapter-memory-allowlist")
+minimal_protocol "$D"
+printf 'curator_mode: auto\nsession_log: DESIGN.md\nmemory: agents-md\n' > "$D/.protocol.md"
+printf '# AGENTS.md\n\nAllowlisted adapter.\n' > "$D/AGENTS.md"
+mkdir -p "$D/.cursor/rules"
+cat > "$D/.cursor/rules/y.mdc" <<'EOF'
+---
+description: Should be suppressed
+---
+Suppressed body.
+EOF
+assert_contains "memory: agents-md → AGENTS.md still shown" "$D" "## AGENTS.md"
+assert_not_contains "memory: agents-md → cursor rules suppressed" "$D" "Cursor rules"
 
 # ---------------------------------------------------------------------------
 # Summary

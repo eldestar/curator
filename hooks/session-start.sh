@@ -7,6 +7,16 @@ set -euo pipefail
 
 [[ -f ".protocol.md" ]] || exit 0
 
+# Source the adapter registry from the hook's own directory so this works
+# whether run from the repo (hooks/session-start.sh) or from the copied
+# ~/.claude/ location. If absent, adapters are skipped silently — this hook
+# must remain forward/backward compatible with installs that predate it.
+_HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)" || _HOOK_DIR=""
+if [[ -n "$_HOOK_DIR" && -f "${_HOOK_DIR}/curator-adapters.sh" ]]; then
+  # shellcheck source=/dev/null
+  source "${_HOOK_DIR}/curator-adapters.sh"
+fi
+
 # Read mode (default: auto)
 MODE=$(grep -m1 '^curator_mode:' .protocol.md 2>/dev/null | sed 's/^curator_mode:[[:space:]]*//' | tr -d '[:space:]' || true)
 MODE="${MODE:-auto}"
@@ -16,6 +26,31 @@ SESSION_LOG=$(grep -m1 '^session_log:' .protocol.md 2>/dev/null | sed 's/^sessio
 # Strip leading/trailing whitespace only — preserve internal spaces for error detection
 SESSION_LOG=$(echo "$SESSION_LOG" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 SESSION_LOG="${SESSION_LOG:-DESIGN.md}"
+
+# Read entry point filename (default: CLAUDE.md)
+ENTRY_POINT=$(grep -m1 '^entry_point:' .protocol.md 2>/dev/null | sed 's/^entry_point:[[:space:]]*//' || true)
+ENTRY_POINT=$(echo "$ENTRY_POINT" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+ENTRY_POINT="${ENTRY_POINT:-CLAUDE.md}"
+
+# Read memory: field (comma-separated adapter ids; default = priority order).
+# Parsed identically to SESSION_LOG: grep the field, sed off the label, split
+# on comma, trim each token. Unknown ids are ignored by run_registry itself.
+_MEMORY_RAW=$(grep -m1 '^memory:' .protocol.md 2>/dev/null | sed 's/^memory:[[:space:]]*//' || true)
+_MEMORY_RAW=$(echo "$_MEMORY_RAW" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+MEMORY_IDS=()
+if [[ -n "$_MEMORY_RAW" ]]; then
+  _OLD_IFS="$IFS"
+  IFS=','
+  for _tok in $_MEMORY_RAW; do
+    _tok=$(echo "$_tok" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    [[ -n "$_tok" ]] && MEMORY_IDS+=("$_tok")
+  done
+  IFS="$_OLD_IFS"
+fi
+if [[ "${#MEMORY_IDS[@]}" -eq 0 ]]; then
+  MEMORY_IDS=(claude-native agents-md cline-bank copilot cursor)
+fi
 
 # Sanitize session_log path
 _BS=$'\\'
@@ -74,6 +109,10 @@ build_context() {
     echo "Recent commits:"
     git log --oneline -5 2>/dev/null || true
     echo ""
+  fi
+
+  if command -v run_registry &>/dev/null; then
+    run_registry "$ENTRY_POINT" "$SESSION_LOG" "${MEMORY_IDS[@]}"
   fi
 
   if [[ -f "$SESSION_LOG" ]]; then

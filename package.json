@@ -1,6 +1,6 @@
 {
   "name": "@eldestar/curator",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "A portable session-protocol skill for Claude Code — instant orientation, no doc sprawl.",
   "keywords": [
     "claude-code",
@@ -17,11 +17,12 @@
     "hooks/",
     "template/",
     "scripts/postinstall.js",
+    "scripts/migrate.js",
     "scripts/test-hook.sh"
   ],
   "scripts": {
     "postinstall": "node scripts/postinstall.js",
-    "test": "bash scripts/test-hook.sh"
+    "test": "bash scripts/test-hook.sh && bash scripts/test-stop.sh && node scripts/test-postinstall.js && node scripts/test-migrate.js"
   },
   "bin": {
     "curator": "scripts/postinstall.js"
